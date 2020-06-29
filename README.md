@@ -26,6 +26,12 @@ inputs = torch.randn(2, 1024, 512)
 slot_attn(inputs) # (2, 5, 512)
 ```
 
+After training, the network is reported to be able to generalize to slightly different number of slots (clusters). You can override the number of slots used by the `num_slots` keyword in forward.
+
+```python
+slot_attn(inputs, num_slots = 8) # (2, 8, 512)
+```
+
 ## Citation
 
 ```bibtex
