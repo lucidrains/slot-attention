@@ -18,7 +18,7 @@ class PreNorm(nn.Module):
         return self.fn(x)
 
 class SlotAttention(nn.Module):
-    def __init__(self, num_slots, dim, iters = 3, eps = 1e-5):
+    def __init__(self, num_slots, dim, iters = 3, eps = 1e-5, hidden_dim = 128):
         super().__init__()
         self.num_slots = num_slots
         self.iters = iters
@@ -32,10 +32,12 @@ class SlotAttention(nn.Module):
 
         self.gru = nn.GRU(dim, dim)
 
+        hidden_dim = max(dim, hidden_dim)
+
         self.mlp = Residual(PreNorm(dim, nn.Sequential(
-            nn.Linear(dim, dim * 4),
-            nn.LeakyReLU(inplace = True),
-            nn.Linear(dim * 4, dim)
+            nn.Linear(dim, hidden_dim),
+            nn.ReLU(inplace = True),
+            nn.Linear(hidden_dim, dim)
         )))
 
         self.norm_input = nn.LayerNorm(dim)
