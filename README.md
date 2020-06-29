@@ -1,6 +1,8 @@
-## Slot Attention
+## Slot Attention (wip)
 
 Implementation of <a href="https://arxiv.org/abs/2006.15055">Slot Attention</a> from GoogleAI in Pytorch.
+
+Experiments pending.
 
 ## Install
 
