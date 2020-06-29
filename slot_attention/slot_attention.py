@@ -18,7 +18,7 @@ class PreNorm(nn.Module):
         return self.fn(x)
 
 class SlotAttention(nn.Module):
-    def __init__(self, num_slots, dim, iters = 3, eps = 1e-5, hidden_dim = 128):
+    def __init__(self, num_slots, dim, iters = 3, eps = 1e-8, hidden_dim = 128):
         super().__init__()
         self.num_slots = num_slots
         self.iters = iters
@@ -59,7 +59,7 @@ class SlotAttention(nn.Module):
 
             dots = torch.einsum('bid,bjd->bij', q, k) * self.scale
             attn = dots.softmax(dim=1) + self.eps
-            attn = attn / attn.mean(dim=-1, keepdim=True)
+            attn = attn / attn.sum(dim=-1, keepdim=True)
 
             updates = torch.einsum('bjd,bij->bid', v, attn)
 
