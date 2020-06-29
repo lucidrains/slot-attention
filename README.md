@@ -1,6 +1,6 @@
-# Slot Attention
+## Slot Attention
 
-Implementation of Slot Attention from GoogleAI in Pytorch
+Implementation of <a href="https://arxiv.org/abs/2006.15055">Slot Attention</a> from GoogleAI in Pytorch.
 
 ## Install
 
@@ -15,9 +15,9 @@ import torch
 from slot_attention import SlotAttention
 
 slot_attn = SlotAttention(
-	num_slots = 5,
-	dim = 512,
-	iters = 3   # iterations of attention, defaults to 3
+    num_slots = 5,
+    dim = 512,
+    iters = 3   # iterations of attention, defaults to 3
 )
 
 inputs = torch.randn(2, 1024, 512)
