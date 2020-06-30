@@ -1,8 +1,8 @@
+<img src="./diagram.jpeg" width="600px" style="border: 1px solid #ccc"></img>
+
 ## Slot Attention
 
-Implementation of <a href="https://arxiv.org/abs/2006.15055">Slot Attention</a> from GoogleAI in Pytorch.
-
-Experiments pending.
+Implementation of <a href="https://arxiv.org/abs/2006.15055">Slot Attention</a> from the paper 'Object-Centric Learning with Slot Attention' in Pytorch. Here is a <a href="https://www.youtube.com/watch?v=DYBmD88vpiA">video</a> that describes what this network can do.
 
 ## Install
 
