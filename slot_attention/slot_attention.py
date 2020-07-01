@@ -1,22 +1,6 @@
 from torch import nn
 import torch
 
-class Residual(nn.Module):
-    def __init__(self, fn):
-        super().__init__()
-        self.fn = fn
-    def forward(self, x):
-        return x + self.fn(x)
-
-class PreNorm(nn.Module):
-    def __init__(self, dim, fn):
-        super().__init__()
-        self.fn = fn
-        self.norm = nn.LayerNorm(dim)
-    def forward(self, x):
-        x = self.norm(x)
-        return self.fn(x)
-
 class SlotAttention(nn.Module):
     def __init__(self, num_slots, dim, iters = 3, eps = 1e-8, hidden_dim = 128):
         super().__init__()
@@ -36,14 +20,15 @@ class SlotAttention(nn.Module):
 
         hidden_dim = max(dim, hidden_dim)
 
-        self.mlp = Residual(PreNorm(dim, nn.Sequential(
+        self.mlp = nn.Sequential(
             nn.Linear(dim, hidden_dim),
             nn.ReLU(inplace = True),
             nn.Linear(hidden_dim, dim)
-        )))
+        )
 
-        self.norm_input = nn.LayerNorm(dim)
-        self.norm_slots = nn.LayerNorm(dim)
+        self.norm_input  = nn.LayerNorm(dim)
+        self.norm_slots  = nn.LayerNorm(dim)
+        self.norm_pre_ff = nn.LayerNorm(dim)
 
     def forward(self, inputs, num_slots = None):
         b, n, d = inputs.shape
@@ -74,6 +59,6 @@ class SlotAttention(nn.Module):
             )
 
             slots = slots.reshape(b, -1, d)
-            slots = self.mlp(slots)
+            slots = slots + self.mlp(self.norm_pre_ff(slots))
 
         return slots
