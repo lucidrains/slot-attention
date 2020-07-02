@@ -44,10 +44,11 @@ class GatedResidual(nn.Module):
         super().__init__()
         self.gru = nn.GRU(dim, dim)
         self.fn = fn
-    def forward(self, inputs, context):
+    def forward(self, *args):
+        inputs = args[0]
         b, _, d = inputs.shape
 
-        updates = self.fn(inputs, context)
+        updates = self.fn(*args)
 
         inputs, _ = self.gru(
             updates.reshape(1, -1, d),
@@ -83,10 +84,10 @@ class SlotAttentionExperimental(nn.Module):
         self.slots_sigma = nn.Parameter(torch.randn(1, 1, dim))
 
         self.slots_to_inputs_attn = GatedResidual(dim, WeightedAttention(dim, eps = eps))
-        self.slots_ff = Residual(FeedForward(dim, hidden_dim))
+        self.slots_ff = GatedResidual(dim, FeedForward(dim, hidden_dim))
 
         self.inputs_to_slots_attn = GatedResidual(dim, WeightedAttention(dim, eps = eps, softmax_dim = 2, weighted_mean_dim = 1))
-        self.inputs_ff = Residual(FeedForward(dim, hidden_dim))
+        self.inputs_ff = GatedResidual(dim, FeedForward(dim, hidden_dim))
 
     def forward(self, inputs, num_slots = None):
         b, n, d = inputs.shape
