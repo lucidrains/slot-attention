@@ -1,1 +1,2 @@
 from slot_attention.slot_attention import SlotAttention
+from slot_attention.slot_attention_experimental import SlotAttentionExperimental
