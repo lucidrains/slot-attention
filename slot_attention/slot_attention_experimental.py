@@ -106,4 +106,4 @@ class SlotAttentionExperimental(nn.Module):
             inputs = self.inputs_to_slots_attn(inputs, slots)
             inputs = self.inputs_ff(inputs)
 
-        return slots
+        return slots, inputs
