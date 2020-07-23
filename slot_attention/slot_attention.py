@@ -16,7 +16,7 @@ class SlotAttention(nn.Module):
         self.to_k = nn.Linear(dim, dim, bias = False)
         self.to_v = nn.Linear(dim, dim, bias = False)
 
-        self.gru = nn.GRU(dim, dim)
+        self.gru = nn.GRUCell(dim, dim)
 
         hidden_dim = max(dim, hidden_dim)
 
@@ -53,9 +53,9 @@ class SlotAttention(nn.Module):
 
             updates = torch.einsum('bjd,bij->bid', v, attn)
 
-            slots, _ = self.gru(
-                updates.reshape(1, -1, d),
-                slots_prev.reshape(1, -1, d)
+            slots = self.gru(
+                updates.reshape(-1, d),
+                slots_prev.reshape(-1, d)
             )
 
             slots = slots.reshape(b, -1, d)

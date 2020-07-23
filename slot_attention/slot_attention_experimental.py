@@ -42,7 +42,7 @@ class Residual(nn.Module):
 class GatedResidual(nn.Module):
     def __init__(self, dim, fn):
         super().__init__()
-        self.gru = nn.GRU(dim, dim)
+        self.gru = nn.GRUCell(dim, dim)
         self.fn = fn
     def forward(self, *args):
         inputs = args[0]
@@ -50,9 +50,9 @@ class GatedResidual(nn.Module):
 
         updates = self.fn(*args)
 
-        inputs, _ = self.gru(
-            updates.reshape(1, -1, d),
-            inputs.reshape(1, -1, d)
+        inputs = self.gru(
+            updates.reshape(-1, d),
+            inputs.reshape(-1, d)
         )
         return inputs.reshape(b, -1, d)
 
