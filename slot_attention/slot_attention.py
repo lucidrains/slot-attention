@@ -12,9 +12,9 @@ class SlotAttention(nn.Module):
         self.slots_mu = nn.Parameter(torch.randn(1, 1, dim))
         self.slots_sigma = nn.Parameter(torch.randn(1, 1, dim))
 
-        self.to_q = nn.Linear(dim, dim, bias = True)
-        self.to_k = nn.Linear(dim, dim, bias = True)
-        self.to_v = nn.Linear(dim, dim, bias = True)
+        self.to_q = nn.Linear(dim, dim)
+        self.to_k = nn.Linear(dim, dim)
+        self.to_v = nn.Linear(dim, dim)
 
         self.gru = nn.GRUCell(dim, dim)
 

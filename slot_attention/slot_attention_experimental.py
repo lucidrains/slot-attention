@@ -7,9 +7,9 @@ class WeightedAttention(nn.Module):
         self.norm_input = nn.LayerNorm(dim)
         self.norm_context = nn.LayerNorm(dim)
 
-        self.to_q = nn.Linear(dim, dim, bias = False)
-        self.to_k = nn.Linear(dim, dim, bias = False)
-        self.to_v = nn.Linear(dim, dim, bias = False)
+        self.to_q = nn.Linear(dim, dim)
+        self.to_k = nn.Linear(dim, dim)
+        self.to_v = nn.Linear(dim, dim)
 
         self.eps = eps
         self.scale = dim ** -0.5
