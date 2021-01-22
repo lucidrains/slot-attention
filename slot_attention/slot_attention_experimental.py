@@ -75,13 +75,14 @@ class FeedForward(nn.Module):
 class SlotAttentionExperimental(nn.Module):
     def __init__(self, num_slots, dim, iters = 3, eps = 1e-8, hidden_dim = 128):
         super().__init__()
+        scale = dim ** -0.5
         self.num_slots = num_slots
         self.iters = iters
 
         self.norm_inputs = nn.LayerNorm(dim)
 
         self.slots_mu = nn.Parameter(torch.randn(1, 1, dim))
-        self.slots_sigma = nn.Parameter(torch.randn(1, 1, dim))
+        self.slots_sigma = nn.Parameter(torch.randn(1, 1, dim) * scale)
 
         self.slots_to_inputs_attn = GatedResidual(dim, WeightedAttention(dim, eps = eps))
         self.slots_ff = GatedResidual(dim, FeedForward(dim, hidden_dim))
@@ -95,7 +96,7 @@ class SlotAttentionExperimental(nn.Module):
 
         mu = self.slots_mu.expand(b, n_s, -1)
         sigma = self.slots_sigma.expand(b, n_s, -1)
-        slots = torch.normal(mu, sigma)
+        slots = mu + sigma * torch.randn(mu.shape)
 
         inputs = self.norm_inputs(inputs)
 
