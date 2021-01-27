@@ -8,9 +8,10 @@ class SlotAttention(nn.Module):
         self.iters = iters
         self.eps = eps
         self.scale = dim ** -0.5
-
-        self.slots_mu = nn.Parameter(torch.randn(1, 1, dim))
-        self.slots_sigma = nn.Parameter(torch.randn(1, 1, dim) * self.scale)
+        
+        _glorot = (6/(1+dim))**-0.5
+        self.slots_mu = nn.Parameter(torch.rand(1, 1, dim)*2*_glorot - _glorot)
+        self.slots_logsigma = nn.Parameter(torch.rand(1, 1, dim)*2*_glorot - _glorot)
 
         self.to_q = nn.Linear(dim, dim)
         self.to_k = nn.Linear(dim, dim)
@@ -35,8 +36,8 @@ class SlotAttention(nn.Module):
         n_s = num_slots if num_slots is not None else self.num_slots
         
         mu = self.slots_mu.expand(b, n_s, -1)
-        sigma = self.slots_sigma.expand(b, n_s, -1)
-        slots = mu + sigma * torch.randn(mu.shape)
+        logsigma = self.slots_logsigma.expand(b, n_s, -1)
+        slots = mu + torch.exp(logsigma) * torch.randn(mu.shape)
 
         inputs = self.norm_input(inputs)        
         k, v = self.to_k(inputs), self.to_v(inputs)
