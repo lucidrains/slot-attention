@@ -1,5 +1,6 @@
-from torch import nn
 import torch
+from torch import nn
+from torch.nn import init
 
 class WeightedAttention(nn.Module):
     def __init__(self, dim, eps = 1e-8, softmax_dim = 1, weighted_mean_dim = 2):
@@ -82,7 +83,9 @@ class SlotAttentionExperimental(nn.Module):
         self.norm_inputs = nn.LayerNorm(dim)
 
         self.slots_mu = nn.Parameter(torch.randn(1, 1, dim))
-        self.slots_sigma = nn.Parameter(torch.randn(1, 1, dim) * scale)
+
+        self.slots_logsigma = nn.Parameter(torch.zeros(1, 1, dim))
+        init.xavier_uniform_(self.slots_logsigma)
 
         self.slots_to_inputs_attn = GatedResidual(dim, WeightedAttention(dim, eps = eps))
         self.slots_ff = GatedResidual(dim, FeedForward(dim, hidden_dim))
@@ -95,7 +98,8 @@ class SlotAttentionExperimental(nn.Module):
         n_s = num_slots if num_slots is not None else self.num_slots
 
         mu = self.slots_mu.expand(b, n_s, -1)
-        sigma = self.slots_sigma.expand(b, n_s, -1)
+        sigma = self.slots_logsigma.exp().expand(b, n_s, -1)
+
         slots = mu + sigma * torch.randn(mu.shape)
 
         inputs = self.norm_inputs(inputs)
