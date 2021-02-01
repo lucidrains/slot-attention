@@ -34,13 +34,13 @@ class SlotAttention(nn.Module):
         self.norm_pre_ff = nn.LayerNorm(dim)
 
     def forward(self, inputs, num_slots = None):
-        b, n, d = inputs.shape
+        b, n, d, device = *inputs.shape, inputs.device
         n_s = num_slots if num_slots is not None else self.num_slots
         
         mu = self.slots_mu.expand(b, n_s, -1)
         sigma = self.slots_logsigma.exp().expand(b, n_s, -1)
 
-        slots = mu + sigma * torch.randn(mu.shape)
+        slots = mu + sigma * torch.randn(mu.shape, device = device)
 
         inputs = self.norm_input(inputs)        
         k, v = self.to_k(inputs), self.to_v(inputs)
