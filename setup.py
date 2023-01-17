@@ -6,6 +6,7 @@ setup(
   version = '1.1.2',
   license='MIT',
   description = 'Implementation of Slot Attention in Pytorch',
+  long_description_content_type = 'text/markdown',
   author = 'Phil Wang',
   author_email = 'lucidrains@gmail.com',
   url = 'https://github.com/lucidrains/slot-attention',
