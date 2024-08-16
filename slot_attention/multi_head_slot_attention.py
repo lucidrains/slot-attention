@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import torch
 from torch import einsum, nn
 from torch.nn import init
@@ -54,7 +56,11 @@ class MultiHeadSlotAttention(Module):
             nn.Linear(hidden_dim, dim)
         )
 
-    def forward(self, inputs, num_slots = None):
+    def forward(
+        self,
+        inputs,
+        num_slots: int | None = None
+    ):
         b, n, d, device, dtype = *inputs.shape, inputs.device, inputs.dtype
         n_s = num_slots if num_slots is not None else self.num_slots
         
@@ -77,9 +83,9 @@ class MultiHeadSlotAttention(Module):
             q = self.split_heads(q)
 
             dots = torch.einsum('... i d, ... j d -> ... i j', q, k) * self.scale
-            attn = dots.softmax(dim = -2) + self.eps
 
-            attn = attn / attn.sum(dim = -1, keepdim = True)
+            attn = dots.softmax(dim = -2)
+            attn = F.normalize(attn, p = 1, dim = -1, eps = self.eps)
 
             updates = einsum('... j d, ... i j -> ... i d', v, attn)
             updates = self.merge_heads(updates)
@@ -88,10 +94,7 @@ class MultiHeadSlotAttention(Module):
             updates, packed_shape = pack([updates], '* d')
             slots_prev, _ = pack([slots_prev], '* d')
 
-            slots = self.gru(
-                updates,
-                slots_prev
-            )
+            slots = self.gru(updates, slots_prev)
 
             slots, = unpack(slots, packed_shape, '* d')
             slots = slots + self.mlp(self.norm_pre_ff(slots))
