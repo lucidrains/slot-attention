@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
   name = 'slot_attention',
   packages = find_packages(),
-  version = '1.1.2',
+  version = '1.2.0',
   license='MIT',
   description = 'Implementation of Slot Attention in Pytorch',
   long_description_content_type = 'text/markdown',
@@ -12,7 +12,8 @@ setup(
   url = 'https://github.com/lucidrains/slot-attention',
   keywords = ['attention', 'artificial intelligence'],
   install_requires=[
-      'torch'
+    'einops>=0.8.0',
+    'torch'
   ],
   classifiers=[
       'Development Status :: 4 - Beta',
