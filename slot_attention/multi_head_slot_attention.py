@@ -82,7 +82,7 @@ class MultiHeadSlotAttention(Module):
             q = self.to_q(slots)
             q = self.split_heads(q)
 
-            dots = torch.einsum('... i d, ... j d -> ... i j', q, k) * self.scale
+            dots = einsum('... i d, ... j d -> ... i j', q, k) * self.scale
 
             attn = dots.softmax(dim = -2)
             attn = F.normalize(attn, p = 1, dim = -1, eps = self.eps)
