@@ -85,7 +85,7 @@ class MultiHeadSlotAttention(Module):
             dots = einsum('... i d, ... j d -> ... i j', q, k) * self.scale
 
             attn = dots.softmax(dim = -2)
-            attn = F.normalize(attn, p = 1, dim = -1, eps = self.eps)
+            attn = F.normalize(attn + self.eps, p = 1, dim = -1)
 
             updates = einsum('... j d, ... i j -> ... i d', v, attn)
             updates = self.merge_heads(updates)
