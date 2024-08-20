@@ -4,6 +4,7 @@ import torch
 from torch import einsum, nn
 from torch.nn import init
 from torch.nn import Module
+import torch.nn.functional as F
 
 from einops import rearrange, repeat, pack, unpack
 from einops.layers.torch import Rearrange
@@ -20,6 +21,7 @@ class MultiHeadSlotAttention(Module):
         hidden_dim = 128
     ):
         super().__init__()
+        self.dim = dim
         self.num_slots = num_slots
         self.iters = iters
         self.eps = eps

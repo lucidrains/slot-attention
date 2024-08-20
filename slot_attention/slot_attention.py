@@ -5,6 +5,7 @@ from torch.nn import init
 class SlotAttention(nn.Module):
     def __init__(self, num_slots, dim, iters = 3, eps = 1e-8, hidden_dim = 128):
         super().__init__()
+        self.dim = dim
         self.num_slots = num_slots
         self.iters = iters
         self.eps = eps

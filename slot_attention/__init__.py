@@ -2,3 +2,5 @@ from slot_attention.slot_attention import SlotAttention
 from slot_attention.slot_attention_experimental import SlotAttentionExperimental
 
 from slot_attention.multi_head_slot_attention import MultiHeadSlotAttention
+
+from slot_attention.adaptive_slot_wrapper import AdaptiveSlotWrapper

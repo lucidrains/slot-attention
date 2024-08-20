@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
   name = 'slot_attention',
   packages = find_packages(),
-  version = '1.2.2',
+  version = '1.4.0',
   license='MIT',
   description = 'Implementation of Slot Attention in Pytorch',
   long_description_content_type = 'text/markdown',
@@ -16,10 +16,10 @@ setup(
     'torch'
   ],
   classifiers=[
-      'Development Status :: 4 - Beta',
-      'Intended Audience :: Developers',
-      'Topic :: Scientific/Engineering :: Artificial Intelligence',
-      'License :: OSI Approved :: MIT License',
-      'Programming Language :: Python :: 3.6',
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3.6',
   ],
 )
