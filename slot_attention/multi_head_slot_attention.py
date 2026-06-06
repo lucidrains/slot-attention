@@ -6,8 +6,21 @@ from torch.nn import init
 from torch.nn import Module
 import torch.nn.functional as F
 
-from einops import rearrange, repeat, pack, unpack
+from einops import rearrange, repeat, pack, unpack, einsum
 from einops.layers.torch import Rearrange
+
+# helpers
+
+def exists(v):
+    return v is not None
+
+def default(v, d):
+    return v if exists(v) else d
+
+def l1norm(t, dim = -1, eps = 1e-8):
+    return F.normalize(t + eps, p = 1, dim = dim)
+
+# class
 
 class MultiHeadSlotAttention(Module):
     def __init__(
@@ -23,9 +36,10 @@ class MultiHeadSlotAttention(Module):
         super().__init__()
         self.dim = dim
         self.num_slots = num_slots
+        self.dim = dim
         self.iters = iters
         self.eps = eps
-        self.scale = dim ** -0.5
+        self.scale = dim_head ** -0.5
 
         self.slots_mu = nn.Parameter(torch.randn(1, 1, dim))
 
@@ -34,23 +48,22 @@ class MultiHeadSlotAttention(Module):
 
         self.norm_input  = nn.LayerNorm(dim)
         self.norm_slots  = nn.LayerNorm(dim)
+        self.norm_pre_ff = nn.LayerNorm(dim)
 
         dim_inner = dim_head * heads
 
         self.split_heads = Rearrange('b n (h d) -> b h n d', h = heads)
+        self.merge_heads = Rearrange('b h n d -> b n (h d)')
 
         self.to_q = nn.Linear(dim, dim_inner)
         self.to_k = nn.Linear(dim, dim_inner)
         self.to_v = nn.Linear(dim, dim_inner)
 
-        self.merge_heads = Rearrange('b h n d -> b n (h d)')
         self.combine_heads = nn.Linear(dim_inner, dim)
 
         self.gru = nn.GRUCell(dim, dim)
 
         hidden_dim = max(dim, hidden_dim)
-
-        self.norm_pre_ff = nn.LayerNorm(dim)
 
         self.mlp = nn.Sequential(
             nn.Linear(dim, hidden_dim),
@@ -64,14 +77,14 @@ class MultiHeadSlotAttention(Module):
         num_slots: int | None = None
     ):
         b, n, d, device, dtype = *inputs.shape, inputs.device, inputs.dtype
-        n_s = num_slots if num_slots is not None else self.num_slots
-        
+        n_s = default(num_slots, self.num_slots)
+
         mu = repeat(self.slots_mu, '1 1 d -> b s d', b = b, s = n_s)
         sigma = repeat(self.slots_logsigma.exp(), '1 1 d -> b s d', b = b, s = n_s)
 
         slots = mu + sigma * torch.randn(mu.shape, device = device, dtype = dtype)
 
-        inputs = self.norm_input(inputs)        
+        inputs = self.norm_input(inputs)
 
         k, v = self.to_k(inputs), self.to_v(inputs)
         k, v = map(self.split_heads, (k, v))
@@ -81,17 +94,15 @@ class MultiHeadSlotAttention(Module):
 
             slots = self.norm_slots(slots)
 
-            q = self.to_q(slots)
-            q = self.split_heads(q)
+            q = self.split_heads(self.to_q(slots))
 
-            dots = einsum('... i d, ... j d -> ... i j', q, k) * self.scale
+            dots = einsum(q, k, '... i d, ... j d -> ... i j') * self.scale
 
             attn = dots.softmax(dim = -2)
-            attn = F.normalize(attn + self.eps, p = 1, dim = -1)
+            attn = l1norm(attn, eps = self.eps)
 
-            updates = einsum('... j d, ... i j -> ... i d', v, attn)
-            updates = self.merge_heads(updates)
-            updates = self.combine_heads(updates)
+            updates = einsum(v, attn, '... j d, ... i j -> ... i d')
+            updates = self.combine_heads(self.merge_heads(updates))
 
             updates, packed_shape = pack([updates], '* d')
             slots_prev, _ = pack([slots_prev], '* d')

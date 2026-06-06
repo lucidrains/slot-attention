@@ -1,8 +1,24 @@
 import torch
 from torch import nn
-from torch.nn import init
+import torch.nn.functional as F
+from torch.nn import Module, init
 
-class WeightedAttention(nn.Module):
+from einops import einsum
+
+# helpers
+
+def exists(v):
+    return v is not None
+
+def default(v, d):
+    return v if exists(v) else d
+
+def l1norm(t, dim = -1, eps = 1e-8):
+    return F.normalize(t + eps, p = 1, dim = dim)
+
+# weighted attention with configurable softmax / mean dims
+
+class WeightedAttention(Module):
     def __init__(self, dim, eps = 1e-8, softmax_dim = 1, weighted_mean_dim = 2):
         super().__init__()
         self.norm_input = nn.LayerNorm(dim)
@@ -18,7 +34,6 @@ class WeightedAttention(nn.Module):
         self.weighted_mean_dim = weighted_mean_dim
 
     def forward(self, inputs, context):
-
         inputs = self.norm_input(inputs)
         context = self.norm_context(context)
 
@@ -26,25 +41,21 @@ class WeightedAttention(nn.Module):
         k = self.to_k(context)
         v = self.to_v(context)
 
-        dots = torch.einsum('bid,bjd->bij', q, k) * self.scale
-        attn = dots.softmax(dim = self.softmax_dim) + self.eps
-        attn = attn / attn.sum(dim = self.weighted_mean_dim, keepdim=True)
+        dots = einsum(q, k, 'b i d, b j d -> b i j') * self.scale
+        attn = dots.softmax(dim = self.softmax_dim)
+        attn = l1norm(attn, dim = self.weighted_mean_dim, eps = self.eps)
 
-        updates = torch.einsum('bjd,bij->bid', v, attn)
+        updates = einsum(v, attn, 'b j d, b i j -> b i d')
         return updates
 
-class Residual(nn.Module):
-    def __init__(self, fn):
-        super().__init__()
-        self.fn = fn
-    def forward(self, x):
-        return x + self.fn(x)
+# residual wrappers
 
-class GatedResidual(nn.Module):
+class GatedResidual(Module):
     def __init__(self, dim, fn):
         super().__init__()
         self.gru = nn.GRUCell(dim, dim)
         self.fn = fn
+
     def forward(self, *args):
         inputs = args[0]
         b, _, d = inputs.shape
@@ -57,26 +68,29 @@ class GatedResidual(nn.Module):
         )
         return inputs.reshape(b, -1, d)
 
-class FeedForward(nn.Module):
+# feedforward
+
+class FeedForward(Module):
     def __init__(self, dim, hidden_dim):
         super().__init__()
         hidden_dim = max(dim, hidden_dim)
 
+        self.norm = nn.LayerNorm(dim)
         self.net = nn.Sequential(
             nn.Linear(dim, hidden_dim),
             nn.ReLU(inplace = True),
             nn.Linear(hidden_dim, dim)
         )
-        self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
         x = self.norm(x)
         return self.net(x)
 
-class SlotAttentionExperimental(nn.Module):
+# class
+
+class SlotAttentionExperimental(Module):
     def __init__(self, num_slots, dim, iters = 3, eps = 1e-8, hidden_dim = 128):
         super().__init__()
-        scale = dim ** -0.5
         self.num_slots = num_slots
         self.iters = iters
 
@@ -95,7 +109,7 @@ class SlotAttentionExperimental(nn.Module):
 
     def forward(self, inputs, num_slots = None):
         b, n, d, device, dtype = *inputs.shape, inputs.device, inputs.dtype
-        n_s = num_slots if num_slots is not None else self.num_slots
+        n_s = default(num_slots, self.num_slots)
 
         mu = self.slots_mu.expand(b, n_s, -1)
         sigma = self.slots_logsigma.exp().expand(b, n_s, -1)

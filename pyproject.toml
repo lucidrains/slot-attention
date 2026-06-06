@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slot_attention"
+version = "1.4.0"
+description = "Implementation of Slot Attention in Pytorch"
+readme = "README.md"
+authors = [
+  { name = "Phil Wang", email = "lucidrains@gmail.com" }
+]
+license = { text = "MIT" }
+keywords = ["attention", "artificial intelligence"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.6",
+]
+dependencies = [
+    "einops>=0.8.0",
+    "einx>=0.3.0",
+    "torch",
+    "vector-quantize-pytorch"
+]
+
+[project.urls]
+Homepage = "https://codeberg.org/lucidrains/slot-attention"
+
+[tool.hatch.build.targets.wheel]
+packages = ["slot_attention"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "slot_attention",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "."
+]

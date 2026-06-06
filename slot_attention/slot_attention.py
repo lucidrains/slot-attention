@@ -1,12 +1,29 @@
 import torch
 from torch import nn
-from torch.nn import init
+import torch.nn.functional as F
+from torch.nn import Module, init
 
-class SlotAttention(nn.Module):
+from einops import einsum
+
+# helpers
+
+def exists(v):
+    return v is not None
+
+def default(v, d):
+    return v if exists(v) else d
+
+def l1norm(t, dim = -1, eps = 1e-8):
+    return F.normalize(t + eps, p = 1, dim = dim)
+
+# class
+
+class SlotAttention(Module):
     def __init__(self, num_slots, dim, iters = 3, eps = 1e-8, hidden_dim = 128):
         super().__init__()
         self.dim = dim
         self.num_slots = num_slots
+        self.dim = dim
         self.iters = iters
         self.eps = eps
         self.scale = dim ** -0.5
@@ -36,14 +53,14 @@ class SlotAttention(nn.Module):
 
     def forward(self, inputs, num_slots = None):
         b, n, d, device, dtype = *inputs.shape, inputs.device, inputs.dtype
-        n_s = num_slots if num_slots is not None else self.num_slots
-        
+        n_s = default(num_slots, self.num_slots)
+
         mu = self.slots_mu.expand(b, n_s, -1)
         sigma = self.slots_logsigma.exp().expand(b, n_s, -1)
 
         slots = mu + sigma * torch.randn(mu.shape, device = device, dtype = dtype)
 
-        inputs = self.norm_input(inputs)        
+        inputs = self.norm_input(inputs)
         k, v = self.to_k(inputs), self.to_v(inputs)
 
         for _ in range(self.iters):
@@ -52,12 +69,11 @@ class SlotAttention(nn.Module):
             slots = self.norm_slots(slots)
             q = self.to_q(slots)
 
-            dots = torch.einsum('bid,bjd->bij', q, k) * self.scale
-            attn = dots.softmax(dim=1) + self.eps
+            dots = einsum(q, k, 'b i d, b j d -> b i j') * self.scale
+            attn = dots.softmax(dim = 1)
+            attn = l1norm(attn, eps = self.eps)
 
-            attn = attn / attn.sum(dim=-1, keepdim=True)
-
-            updates = torch.einsum('bjd,bij->bid', v, attn)
+            updates = einsum(v, attn, 'b j d, b i j -> b i d')
 
             slots = self.gru(
                 updates.reshape(-1, d),

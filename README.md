@@ -64,7 +64,7 @@ slots, keep_slots = adaptive_slots(inputs) # (2, 5, 512), (2, 5)
 keep_aux_loss = keep_slots.sum()  # add this to your main loss with some weight
 ```
 
-## Citation
+## Citations
 
 ```bibtex
 @misc{locatello2020objectcentric,
@@ -85,5 +85,16 @@ keep_aux_loss = keep_slots.sum()  # add this to your main loss with some weight
     year    = {2024},
     volume  = {abs/2406.09196},
     url     = {https://api.semanticscholar.org/CorpusID:270440447}
+}
+```
+
+```bibtex
+@article{liu2025metaslot,
+    title   = {MetaSlot: Break Through the Fixed Number of Slots in Object-Centric Learning},
+    author  = {Liu, Hongjia and Zhao, Rongzhen and Chen, Haohan and Pajarinen, Joni},
+    journal = {Advances in Neural Information Processing Systems},
+    volume  = {38},
+    pages   = {67319--67344},
+    year    = {2026}
 }
 ```
