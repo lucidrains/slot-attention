@@ -5,3 +5,4 @@ from slot_attention.multi_head_slot_attention import MultiHeadSlotAttention
 
 from slot_attention.adaptive_slot_wrapper import AdaptiveSlotWrapper
 from slot_attention.meta_slot_attention import MetaSlotAttention
+from slot_attention.ortho_slot_wrapper import OrthoSlotWrapper

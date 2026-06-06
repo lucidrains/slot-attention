@@ -201,7 +201,7 @@ def train(
         for (batch,) in loader:
             optim.zero_grad()
             recon, slots, padding_mask, vq_loss = model(batch)
-            
+
             recon_loss = F.mse_loss(recon, batch)
             loss = recon_loss + vq_loss
             loss.backward()

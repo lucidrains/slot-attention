@@ -98,3 +98,12 @@ keep_aux_loss = keep_slots.sum()  # add this to your main loss with some weight
     year    = {2026}
 }
 ```
+
+```bibtex
+@inproceedings{Touska2026OrthoRF,
+    title   = {OrthoRF: Exploring Orthogonality in Object-Centric Representations},
+    author  = {Despoina Touska and Bastiaan Onne Fagginger Auer and Alexandru Onose and Tejaswi Kasarla and Luis Armando P{\'e}rez Rey and Maximilian Lipp and Lyubov Amitonova and Martin R. Oswald and Pascal Cerfontaine},
+    booktitle = {International Conference on Learning Representations},
+    year    = {2026}
+}
+```
