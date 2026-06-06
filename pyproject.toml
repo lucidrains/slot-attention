@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slot_attention"
-version = "1.4.0"
+version = "1.5.1"
 description = "Implementation of Slot Attention in Pytorch"
 readme = "README.md"
 authors = [
